@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/md_blue_600">
+
+    <RelativeLayout
+        android:id="@+id/rl_sign_in_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv_sign_in_leanote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="64dp"
+            android:src="@mipmap/ic_login_leanote"
+            tools:ignore="ContentDescription"/>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/til_sign_in_email_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_below="@+id/iv_sign_in_leanote"
+            android:layout_marginTop="48dp">
+
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/tiet_sign_in_email_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/input_email"
+                android:inputType="textEmailAddress"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/til_sign_in_pwd_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginTop="16dp"
+            android:layout_below="@+id/til_sign_in_email_layout">
+
+            <com.bruce.leanote.ui.widgets.PasswordEditText
+                android:id="@+id/tiet_sign_in_pwd_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/input_password"
+                android:inputType="textPassword"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/til_sign_in_pwd_again_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginTop="16dp"
+            android:layout_below="@+id/til_sign_in_pwd_layout">
+
+            <com.bruce.leanote.ui.widgets.PasswordEditText
+                android:id="@+id/tiet_sign_in_pwd_again_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/input_password_again"
+                android:inputType="textPassword"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/acb_sign_in_login_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginTop="40dp"
+            android:background="@color/md_blue_800"
+            android:layout_below="@+id/til_sign_in_pwd_again_layout"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="@string/sign_in"/>
+
+        <LinearLayout
+            android:id="@+id/ll_sign_in_had_account_tip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/acb_sign_in_login_btn"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:textSize="14sp"
+                android:text="@string/sign_in_had_account"/>
+
+            <TextView
+                android:id="@+id/tv_sign_in_create_one"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:padding="4dp"
+                android:textColor="@color/md_white_1000"
+                android:textSize="14sp"
+                android:text="@string/login"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</ScrollView>
