@@ -3,19 +3,24 @@ package com.bruce.leanote.ui.login;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.support.v7.widget.AppCompatButton;
+import android.text.TextUtils;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.bruce.leanote.R;
-import com.bruce.leanote.model.Account;
+import com.bruce.leanote.model.Login;
+import com.bruce.leanote.net.HttpMethods;
 import com.bruce.leanote.ui.base.BaseActivity;
 import com.bruce.leanote.ui.login.adapter.EmailAutoCompleteAdapter;
 import com.bruce.leanote.ui.signIn.SignInActivity;
 import com.bruce.leanote.ui.widgets.PasswordEditText;
+import com.bruce.leanote.utils.L;
+import com.bruce.leanote.utils.RegexUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import rx.Observer;
 
 public class LoginActivity extends BaseActivity implements View.OnClickListener{
 
@@ -24,7 +29,9 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener{
     private AppCompatButton mLoginBtn;
     private TextView mSignInTextView;
 
-    private List<Account> mAccounts;
+    private List<String> mEmailList;
+
+    private boolean isRightEmail = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,34 +45,81 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener{
         mLoginBtn.setOnClickListener(this);
         mSignInTextView.setOnClickListener(this);
 
-        mAccounts = new ArrayList<>();
-        mAccounts.add(new Account("huazhongwei@yeah.net", "12345"));
-        mAccounts.add(new Account("1078824402@qq.com", "12345"));
-        mAccounts.add(new Account("huaweiysh@gmail.com", "12345"));
-        mAccounts.add(new Account("1070273909@qq.com", "12345"));
-        ArrayList<String> list = new ArrayList<>();
-        for (Account account : mAccounts) {
-            list.add(account.getEmail());
-        }
-//        mEmailEditText.setAdapter(new EmailAutoCompleteAdapter(this, R.layout.item_auto_complete_text_view, mAccounts));
-        mEmailEditText.setAdapter(new ArrayAdapter<String>(this, R.layout.item_auto_complete_text_view, list));
+        mEmailList = new ArrayList<>();
+        mEmailList.add("huazhongwei@yeah.net");
+        mEmailList.add("1078824402@qq.com");
+        mEmailList.add("huaweiysh@gmail.com");
+        mEmailList.add("1070273909@qq.com");
+        mEmailEditText.setAdapter(new EmailAutoCompleteAdapter(this, R.layout.item_auto_complete_text_view, mEmailList));
+
+        mEmailEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    final String email = mEmailEditText.getText().toString();
+                    if(TextUtils.isEmpty(email)) {
+                        mEmailEditText.setError(getResources().getString(R.string.input_email_null));
+                        isRightEmail = false;
+                    } else {
+                        if(!RegexUtils.isEmail(email)) {
+                            mEmailEditText.setError(getResources().getString(R.string.input_email_error));
+                            isRightEmail = false;
+                        } else {
+                            isRightEmail = true;
+                        }
+                    }
+
+                }
+            }
+        });
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.acet_login_email_content:
-                showToast("email_content");
-                mEmailEditText.showContextMenu();
+                mEmailEditText.showDropDown();
                 break;
 
             case R.id.acb_login_login_btn:
-
+                login();
                 break;
 
             case R.id.tv_login_sign_in:
                 startActivity(SignInActivity.class);
                 break;
         }
+    }
+
+    private void login() {
+        if(mEmailEditText == null || mPasswordEditText == null) {
+            return ;
+        }
+        if(!isRightEmail) {
+            return;
+        }
+        final String pwd = mPasswordEditText.getText().toString();
+        if(TextUtils.isEmpty(pwd)) {
+            mPasswordEditText.setError(getResources().getString(R.string.input_password_null));
+            return;
+        }
+        final String email = mEmailEditText.getText().toString();
+        HttpMethods.getInstance().login(email, pwd, new Observer<Login>() {
+
+            @Override
+            public void onNext(Login login) {
+                L.i("login = " + login);
+            }
+
+            @Override
+            public void onCompleted() {
+                L.i("onCompleted");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                L.i("onError = " + e.getMessage());
+            }
+        });
     }
 }

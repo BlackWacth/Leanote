@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/md_blue_600">
+    android:background="@color/md_light_blue_500">
 
     <RelativeLayout
         android:id="@+id/rl_sign_in_container"
@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="64dp"
+            android:layout_marginTop="56dp"
             android:src="@mipmap/ic_login_leanote"
             tools:ignore="ContentDescription"/>
 
@@ -81,7 +81,7 @@
             android:layout_marginLeft="32dp"
             android:layout_marginRight="32dp"
             android:layout_marginTop="40dp"
-            android:background="@color/md_blue_800"
+            android:background="@drawable/button_ripple_effect"
             android:layout_below="@+id/til_sign_in_pwd_again_layout"
             android:textAllCaps="false"
             android:textSize="18sp"
