@@ -1,9 +1,8 @@
-package com.bruce.leanote.model;
+package com.bruce.leanote.entity;
 
 /**
  * Created by Bruce on 2017/2/9.
  */
-
 public class Account {
 
     private String email;

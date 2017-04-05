@@ -8,19 +8,15 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.bruce.leanote.R;
-import com.bruce.leanote.model.Login;
-import com.bruce.leanote.net.HttpMethods;
 import com.bruce.leanote.ui.base.BaseActivity;
 import com.bruce.leanote.ui.login.adapter.EmailAutoCompleteAdapter;
 import com.bruce.leanote.ui.signIn.SignInActivity;
 import com.bruce.leanote.ui.widgets.PasswordEditText;
-import com.bruce.leanote.utils.L;
 import com.bruce.leanote.utils.RegexUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import rx.Observer;
 
 public class LoginActivity extends BaseActivity implements View.OnClickListener{
 
@@ -104,22 +100,22 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener{
             return;
         }
         final String email = mEmailEditText.getText().toString();
-        HttpMethods.getInstance().login(email, pwd, new Observer<Login>() {
-
-            @Override
-            public void onNext(Login login) {
-                L.i("login = " + login);
-            }
-
-            @Override
-            public void onCompleted() {
-                L.i("onCompleted");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                L.i("onError = " + e.getMessage());
-            }
-        });
+//        HttpMethods.getInstance().login(email, pwd, new Observer<Login>() {
+//
+//            @Override
+//            public void onNext(Login login) {
+//                L.i("login = " + login);
+//            }
+//
+//            @Override
+//            public void onCompleted() {
+//                L.i("onCompleted");
+//            }
+//
+//            @Override
+//            public void onError(Throwable e) {
+//                L.i("onError = " + e.getMessage());
+//            }
+//        });
     }
 }

@@ -1,4 +1,4 @@
-package com.bruce.leanote.model;
+package com.bruce.leanote.entity;
 
 /**
  * 登录信息
@@ -9,15 +9,12 @@ public class Login {
 
     /**
      * Ok : true
-     * Msg : 用户名或密码有误
      * Token : 589d7ed9ab6441287f002e8c
      * UserId : 585f767dab64417326002873
      * Email : huazhongwei@yeah.net
      * Username : bruce-hua
      */
-
     private boolean Ok;
-    private String Msg;
     private String Token;
     private String UserId;
     private String Email;
@@ -29,14 +26,6 @@ public class Login {
 
     public void setOk(boolean Ok) {
         this.Ok = Ok;
-    }
-
-    public String getMsg() {
-        return Msg;
-    }
-
-    public void setMsg(String Msg) {
-        this.Msg = Msg;
     }
 
     public String getToken() {
@@ -75,7 +64,6 @@ public class Login {
     public String toString() {
         return "Login{" +
                 "Ok=" + Ok +
-                ", Msg='" + Msg + '\'' +
                 ", Token='" + Token + '\'' +
                 ", UserId='" + UserId + '\'' +
                 ", Email='" + Email + '\'' +
