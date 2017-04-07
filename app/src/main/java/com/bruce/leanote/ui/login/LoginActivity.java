@@ -1,63 +1,74 @@
 package com.bruce.leanote.ui.login;
 
-import android.os.Bundle;
-import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.support.v7.widget.AppCompatButton;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import com.bruce.leanote.R;
+import com.bruce.leanote.entity.Login;
+import com.bruce.leanote.global.C;
+import com.bruce.leanote.net.HttpMethods;
+import com.bruce.leanote.net.ObserverAdapter;
+import com.bruce.leanote.ui.HomeActivity;
 import com.bruce.leanote.ui.base.BaseActivity;
 import com.bruce.leanote.ui.login.adapter.EmailAutoCompleteAdapter;
 import com.bruce.leanote.ui.signIn.SignInActivity;
+import com.bruce.leanote.ui.widgets.MAppCompatAutoCompleteTextView;
 import com.bruce.leanote.ui.widgets.PasswordEditText;
+import com.bruce.leanote.utils.L;
 import com.bruce.leanote.utils.RegexUtils;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import butterknife.BindView;
 
 
-public class LoginActivity extends BaseActivity implements View.OnClickListener{
+public class LoginActivity extends BaseActivity implements View.OnClickListener {
 
-    private AppCompatAutoCompleteTextView mEmailEditText;
-    private PasswordEditText mPasswordEditText;
-    private AppCompatButton mLoginBtn;
-    private TextView mSignInTextView;
+    @BindView(R.id.acet_login_email_content)
+    MAppCompatAutoCompleteTextView mEmailEditText;
 
-    private List<String> mEmailList;
+    @BindView(R.id.pet_login_pwd_content)
+    PasswordEditText mPasswordEditText;
+
+    @BindView(R.id.acb_login_login_btn)
+    AppCompatButton mLoginBtn;
+
+    @BindView(R.id.tv_login_sign_in)
+    TextView mSignInTextView;
 
     private boolean isRightEmail = true;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
-        mEmailEditText = (AppCompatAutoCompleteTextView) findViewById(R.id.acet_login_email_content);
-        mPasswordEditText = (PasswordEditText) findViewById(R.id.pet_login_pwd_content);
-        mLoginBtn = (AppCompatButton) findViewById(R.id.acb_login_login_btn);
-        mSignInTextView = (TextView) findViewById(R.id.tv_login_sign_in);
 
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_login;
+    }
+
+    @Override
+    protected void init() {
         mEmailEditText.setOnClickListener(this);
         mLoginBtn.setOnClickListener(this);
         mSignInTextView.setOnClickListener(this);
 
-        mEmailList = new ArrayList<>();
-        mEmailList.add("huazhongwei@yeah.net");
-        mEmailList.add("1078824402@qq.com");
-        mEmailList.add("huaweiysh@gmail.com");
-        mEmailList.add("1070273909@qq.com");
-        mEmailEditText.setAdapter(new EmailAutoCompleteAdapter(this, R.layout.item_auto_complete_text_view, mEmailList));
+        Set<String> emailSet = mSharedPreferences.getStringSet(C.EXTRA_EMAIL_SET, new HashSet<String>());
+        final EmailAutoCompleteAdapter adapter = new EmailAutoCompleteAdapter(this, R.layout.item_auto_complete_text_view, new ArrayList<>(emailSet));
+
+        mEmailEditText.setAdapter(adapter);
 
         mEmailEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
                     final String email = mEmailEditText.getText().toString();
-                    if(TextUtils.isEmpty(email)) {
+                    if (TextUtils.isEmpty(email)) {
                         mEmailEditText.setError(getResources().getString(R.string.input_email_null));
                         isRightEmail = false;
                     } else {
-                        if(!RegexUtils.isEmail(email)) {
+                        if (!RegexUtils.isEmail(email)) {
                             mEmailEditText.setError(getResources().getString(R.string.input_email_error));
                             isRightEmail = false;
                         } else {
@@ -65,6 +76,15 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener{
                         }
                     }
 
+                }
+            }
+        });
+        mEmailEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String item = adapter.getItem(position);
+                if (!TextUtils.isEmpty(item)) {
+                    mPasswordEditText.setText(mSharedPreferences.getString(item, ""));
                 }
             }
         });
@@ -88,34 +108,46 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener{
     }
 
     private void login() {
-        if(mEmailEditText == null || mPasswordEditText == null) {
-            return ;
+        if (mEmailEditText == null || mPasswordEditText == null) {
+            return;
         }
-        if(!isRightEmail) {
+        if (!isRightEmail) {
             return;
         }
         final String pwd = mPasswordEditText.getText().toString();
-        if(TextUtils.isEmpty(pwd)) {
+        if (TextUtils.isEmpty(pwd)) {
             mPasswordEditText.setError(getResources().getString(R.string.input_password_null));
             return;
         }
         final String email = mEmailEditText.getText().toString();
-//        HttpMethods.getInstance().login(email, pwd, new Observer<Login>() {
-//
-//            @Override
-//            public void onNext(Login login) {
-//                L.i("login = " + login);
-//            }
-//
-//            @Override
-//            public void onCompleted() {
-//                L.i("onCompleted");
-//            }
-//
-//            @Override
-//            public void onError(Throwable e) {
-//                L.i("onError = " + e.getMessage());
-//            }
-//        });
+
+        HttpMethods.getInstance().login(email, pwd, new ObserverAdapter<Login>(this, true) {
+            @Override
+            public void onNext(Login login) {
+                super.onNext(login);
+                L.i("login = " + login.toString());
+                mSharedPreferencesEditor.putString(C.EXTRA_TOKEN, login.getToken());
+                mSharedPreferencesEditor.putString(C.EXTRA_USER_ID, login.getUserId());
+                mSharedPreferencesEditor.putString(C.EXTRA_USER_NAME, login.getUsername());
+                Set<String> emailSet = mSharedPreferences.getStringSet(C.EXTRA_EMAIL_SET, new HashSet<String>());
+                emailSet.add(email);
+                mSharedPreferencesEditor.putStringSet(C.EXTRA_EMAIL_SET, emailSet);
+                mSharedPreferencesEditor.putString(email, pwd);
+                mSharedPreferencesEditor.commit();
+            }
+
+            @Override
+            public void requestFailed(String msg) {
+                super.requestFailed(msg);
+                mPasswordEditText.setError(msg);
+            }
+
+            @Override
+            public void onComplete() {
+                super.onComplete();
+                startActivity(HomeActivity.class);
+                LoginActivity.this.finish();
+            }
+        });
     }
 }

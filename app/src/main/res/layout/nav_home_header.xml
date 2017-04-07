@@ -11,7 +11,7 @@
         android:layout_height="80dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="32dp"
-        android:src="@mipmap/ic_mr"/>
+        android:src="@mipmap/ic_launcher"/>
 
     <TextView
         android:id="@+id/tv_nav_home_header_name"

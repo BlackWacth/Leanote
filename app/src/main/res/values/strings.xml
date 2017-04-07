@@ -12,10 +12,13 @@
     <string name="input_email_null">邮箱不能为空</string>
     <string name="input_password_null">密码不能为空</string>
     <string name="input_email_error">邮箱格式错误</string>
+    <string name="input_pwd_inconsistent">密码不一致</string>
 
     <string name="nav_home_header_name">Name</string>
     <string name="nav_home_header_email">email@gmail.com</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="nav_menu_logout">注销</string>
 
 </resources>

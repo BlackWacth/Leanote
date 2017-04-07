@@ -77,12 +77,12 @@ public class PasswordEditText extends AppCompatEditText{
         addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                L.i("beforeTextChanged");
+//                L.i("beforeTextChanged");
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                L.i("onTextChanged = " + s);
+//                L.i("onTextChanged = " + s);
                 if (s.length() > 0) {
                     isShowIcon = true;
                     setIconState(true);
@@ -102,11 +102,17 @@ public class PasswordEditText extends AppCompatEditText{
     }
 
     private void setIconState(boolean isShowIcon) {
+        //关键作用：当在使用setError("")后，必须清楚之前的状态，不然后面改变图标无效。
+        //问题地址：http://stackoverflow.com/questions/39364379/edittext-setcompounddrawableswithintrinsicbounds-not-working-after-seterror
+        setError(null);
+        setCompoundDrawables(null, null, null, null);
+
         if(isShowIcon) {
             setCompoundDrawablesWithIntrinsicBounds(null, null, isShowPassword ? mShowPwdDrawable : mHidePwdDrawable, null);
         } else {
             setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
         }
+        L.i("Icon --- change");
     }
 
     /**
@@ -155,7 +161,7 @@ public class PasswordEditText extends AppCompatEditText{
         if(!isShowIcon) {
             return super.onTouchEvent(event);
         }
-        L.i("onTouchEvent");
+
         final Drawable drawable = isShowPassword ? mShowPwdDrawable : mHidePwdDrawable;
         final Rect bounds = drawable.getBounds();
 
@@ -163,7 +169,10 @@ public class PasswordEditText extends AppCompatEditText{
         int leftIconX = iconX - bounds.width();
         L.i("iconX = " + iconX + ", leftIconX = " + leftIconX);
 
+        L.i("RawX = " + event.getRawX());
+
         if(event.getRawX() >= leftIconX) {
+            L.i("Icon change");
             isShowPassword = !isShowPassword;
             setPasswordShowType(isShowPassword);
             setIconState(true);

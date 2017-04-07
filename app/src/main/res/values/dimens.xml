@@ -3,4 +3,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="nav_home_header_height">180dp</dimen>
+    <dimen name="dialog_loading_width">100dp</dimen>
+    <dimen name="dialog_loading_height">100dp</dimen>
 </resources>

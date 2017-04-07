@@ -8,7 +8,6 @@ import com.bruce.leanote.global.C;
 import com.bruce.leanote.utils.L;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,11 +29,15 @@ import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
+ * 网络工具类
  * Created by Bruce on 2017/2/10.
  */
 public class HttpMethods {
@@ -75,6 +78,7 @@ public class HttpMethods {
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
+                        if(response.isSuccessful())
                         emitter.onNext(response.body().string());
                         emitter.onComplete();
                     }
@@ -87,8 +91,6 @@ public class HttpMethods {
                     @Override
                     public ObservableSource<T> apply(@NonNull final String s) throws Exception {
                         L.i("flatMap : " + s);
-                        Type type = new TypeToken<T>(){}.getType();
-                        L.i("type = " + type);
                         return Observable.create(new ObservableOnSubscribe<T>() {
                             @Override
                             public void subscribe(@NonNull ObservableEmitter<T> emitter) throws Exception {
@@ -98,7 +100,7 @@ public class HttpMethods {
                                     L.i("ok = " + ok);
                                     if(!ok) {
                                         Result result = gson.fromJson(s, Result.class);
-                                        emitter.onError(new Exception(result.getMsg()));
+                                        emitter.onError(new FailedResultException(result.getMsg()));
                                     } else {
                                         T t = gson.fromJson(s, clazz);
                                         L.i("t = " + t.toString());
@@ -131,10 +133,25 @@ public class HttpMethods {
         httpRequest(request, observer, Login.class);
     }
 
-    public void getUserInfo(String userId, Observer<UserInfo> observer) {
-        final String url = BASE_URL + "user/info?userId=" + userId + "&token=" + C.TOKEN;
+    public void getUserInfo(String userId, String token, Observer<UserInfo> observer) {
+        final String url = BASE_URL + "user/info?userId=" + userId + "&token=" + token;
         Request request = new Request.Builder().url(url).get().build();
         httpRequest(request, observer, UserInfo.class);
+    }
+
+    public void logout(String token, Observer<Result> observer) {
+        final String url = BASE_URL + "auth/logout?token="  + token;
+        Request request = new Request.Builder().url(url).get().build();
+        httpRequest(request, observer, Result.class);
+    }
+
+    public void register(String email, String pwd, Observer<Result> observer) {
+        final String loginUrl = BASE_URL + "auth/register";
+        FormBody.Builder builder = new FormBody.Builder();
+        builder.add("email", email);
+        builder.add("pwd", pwd);
+        Request request = new Request.Builder().url(loginUrl).post(builder.build()).build();
+        httpRequest(request, observer, Result.class);
     }
 
     /**

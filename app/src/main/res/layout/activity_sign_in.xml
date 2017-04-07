@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/md_light_blue_500">
+    android:background="@color/md_teal_400">
 
     <RelativeLayout
         android:id="@+id/rl_sign_in_container"
@@ -48,7 +48,7 @@
             android:layout_below="@+id/til_sign_in_email_layout">
 
             <com.bruce.leanote.ui.widgets.PasswordEditText
-                android:id="@+id/tiet_sign_in_pwd_content"
+                android:id="@+id/pet_sign_in_pwd_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/input_password"
@@ -66,7 +66,7 @@
             android:layout_below="@+id/til_sign_in_pwd_layout">
 
             <com.bruce.leanote.ui.widgets.PasswordEditText
-                android:id="@+id/tiet_sign_in_pwd_again_content"
+                android:id="@+id/pet_sign_in_pwd_again_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/input_password_again"
@@ -75,7 +75,7 @@
         </android.support.design.widget.TextInputLayout>
 
         <android.support.v7.widget.AppCompatButton
-            android:id="@+id/acb_sign_in_login_btn"
+            android:id="@+id/acb_sign_in_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="32dp"
@@ -92,7 +92,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:layout_below="@+id/acb_sign_in_login_btn"
+            android:layout_below="@+id/acb_sign_in_btn"
             android:layout_marginTop="32dp"
             android:layout_marginBottom="32dp"
             android:orientation="horizontal">
@@ -105,7 +105,7 @@
                 android:text="@string/sign_in_had_account"/>
 
             <TextView
-                android:id="@+id/tv_sign_in_create_one"
+                android:id="@+id/tv_sign_in_login"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
