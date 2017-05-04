@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     app:cardBackgroundColor="@color/md_teal_500"
     app:cardElevation="8dp"
+    android:clickable="true"
     android:foreground="?attr/selectableItemBackground">
 
     <RelativeLayout
