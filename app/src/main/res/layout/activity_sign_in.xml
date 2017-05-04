@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="56dp"
-            android:src="@mipmap/ic_login_leanote"
+            android:src="@mipmap/ic_leanote"
             tools:ignore="ContentDescription"/>
 
         <android.support.design.widget.TextInputLayout

@@ -1,10 +1,9 @@
 package com.bruce.leanote.net;
 
-import com.bruce.leanote.entity.Account;
 import com.bruce.leanote.entity.Login;
+import com.bruce.leanote.entity.Notebook;
 import com.bruce.leanote.entity.Result;
 import com.bruce.leanote.entity.UserInfo;
-import com.bruce.leanote.global.C;
 import com.bruce.leanote.utils.L;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -16,6 +15,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -30,7 +30,6 @@ import io.reactivex.schedulers.Schedulers;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -151,6 +150,97 @@ public class HttpMethods {
         builder.add("email", email);
         builder.add("pwd", pwd);
         Request request = new Request.Builder().url(loginUrl).post(builder.build()).build();
+        httpRequest(request, observer, Result.class);
+    }
+
+    /**
+     * 得到需要同步的笔记本
+     * @param afterUsn 在此usn后的笔记本是需要同步的
+     * @param maxEntry 最大要同步的量
+     * @param token
+     * @param observer
+     */
+    public void getSyncNotebooks(int afterUsn, int maxEntry, String token, Observer<List<Notebook>> observer) {
+        final String url = BASE_URL + "notebook/getSyncNotebooks?afterUsn="  + afterUsn + "&maxEntry=" + maxEntry + "&token=" + token;
+        get(url, observer);
+    }
+
+    /**
+     * 得到所有笔记本
+     * @param token
+     */
+    public void getNotebooks(String token, Observer<List<Notebook>> observer) {
+        final String url = BASE_URL + "notebook/getNotebooks?token="  + token;
+        get(url, observer);
+    }
+
+    /**
+     * 添加笔记本
+     * @param title 标题
+     * @param parentNotebookId  父notebookId, 可空
+     * @param seq 排列
+     * @param token
+     * @param observer
+     */
+    public void addNotebook(String title, String parentNotebookId, int seq, String token, Observer<Notebook> observer) {
+        final String url = BASE_URL + "notebook/addNotebook";
+        FormBody.Builder builder = new FormBody.Builder();
+        builder.add("title", title);
+        builder.add("parentNotebookId", parentNotebookId);
+        builder.add("seq", seq + "");
+        builder.add("token", token);
+        post(url, builder.build(), observer);
+    }
+
+    /**
+     * 修改笔记本
+     * 错误: {Ok: false, msg: ""} msg == "conflict" 表示冲突
+     * @param notebookId 笔记本ID
+     * @param title 标题
+     * @param parentNotebookId 父notebookId
+     * @param seq 排列
+     * @param usn
+     * @param token
+     * @param observer
+     */
+    public void updateNotebook(String notebookId, String title, String parentNotebookId, int seq, int usn, String token, Observer<Notebook> observer) {
+        final String url = BASE_URL + "notebook/updateNotebook";
+        FormBody.Builder builder = new FormBody.Builder();
+        builder.add("notebookId", notebookId);
+        builder.add("title", title);
+        builder.add("parentNotebookId", parentNotebookId);
+        builder.add("seq", seq + "");
+        builder.add("usn", usn + "");
+        builder.add("token", token);
+        post(url, builder.build(), observer);
+    }
+
+    /**
+     * 删除笔记本
+     * 错误: {Ok: false, msg: ""} msg == "conflict" 表示冲突
+     * 成功: {Ok: true}
+     * @param notebookId 笔记本ID
+     * @param usn
+     * @param token
+     * @param observer
+     */
+    public void deleteNotebook(String notebookId, int usn, String token, Observer<Result> observer) {
+        final String url = BASE_URL + "notebook/deleteNotebook ";
+        FormBody.Builder builder = new FormBody.Builder();
+        builder.add("notebookId", notebookId);
+        builder.add("usn", usn + "");
+        builder.add("token", token);
+        post(url, builder.build(), observer);
+    }
+
+
+    private void get(String url, Observer observer) {
+        Request request = new Request.Builder().url(url).get().build();
+        httpRequest(request, observer, Result.class);
+    }
+
+    private void post(String url, RequestBody requestBody, Observer observer) {
+        Request request = new Request.Builder().url(url).post(requestBody).build();
         httpRequest(request, observer, Result.class);
     }
 

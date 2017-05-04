@@ -1,17 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_book_shape">
+    app:cardBackgroundColor="@color/md_teal_500"
+    app:cardElevation="8dp"
+    android:foreground="?attr/selectableItemBackground">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="64dp"
-        android:text="Android"
-        android:textAllCaps="false"
-        android:textSize="32sp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/tv_item_book_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="56dp"
+            android:text="Android"
+            android:textAllCaps="false"
+            android:textSize="32sp"/>
+
+        <TextView
+            android:id="@+id/tv_item_book_create_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="10dp"
+            android:text="创建时间：2016-12-25"
+            android:textAllCaps="false"
+            android:layout_below="@+id/tv_item_book_title"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_item_book_update_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="4dp"
+            android:text="创建时间：2016-12-25"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            android:layout_below="@+id/tv_item_book_create_time"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="48dp"
+            android:layout_centerHorizontal="true"
+            android:src="@mipmap/ic_leanote"/>
+
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>

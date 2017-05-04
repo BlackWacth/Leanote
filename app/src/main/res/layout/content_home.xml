@@ -22,18 +22,17 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <FrameLayout
+    <RelativeLayout
         android:id="@+id/fl_home_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_home_recycler_view"
+            android:id="@+id/rv_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"/>
+            android:layout_height="match_parent"/>
 
-    </FrameLayout>
+    </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>

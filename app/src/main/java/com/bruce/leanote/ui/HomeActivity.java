@@ -6,7 +6,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -14,11 +13,11 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bruce.leanote.R;
+import com.bruce.leanote.entity.Notebook;
 import com.bruce.leanote.entity.Result;
 import com.bruce.leanote.entity.UserInfo;
 import com.bruce.leanote.global.C;
@@ -27,8 +26,11 @@ import com.bruce.leanote.net.ObserverAdapter;
 import com.bruce.leanote.ui.base.BaseActivity;
 import com.bruce.leanote.ui.login.LoginActivity;
 import com.bruce.leanote.ui.widgets.BookAdapterHelper;
+import com.bruce.leanote.ui.widgets.BookScaleHelper;
 import com.bruce.leanote.utils.L;
 import com.bumptech.glide.Glide;
+
+import java.util.List;
 
 import butterknife.BindView;
 
@@ -41,11 +43,8 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
     @BindView(R.id.dl_home_drawerLayout)
     DrawerLayout mDrawerLayout;
 
-    @BindView(R.id.rv_home_recycler_view)
+    @BindView(R.id.rv_recycler_view)
     RecyclerView mRecyclerView;
-
-    @BindView(R.id.fl_home_content)
-    FrameLayout mFrameLayout;
 
     private HttpMethods mHttpMethods;
 
@@ -77,14 +76,14 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
         }
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        linearLayoutManager.setAutoMeasureEnabled(true);
         mRecyclerView.setLayoutManager(linearLayoutManager);
         BookAdapter adapter = new BookAdapter();
         mRecyclerView.setAdapter(adapter);
 
-        PagerSnapHelper pagerSnapHelper = new PagerSnapHelper();
-        pagerSnapHelper.attachToRecyclerView(mRecyclerView);
+        BookScaleHelper bookScaleHelper = new BookScaleHelper();
+        bookScaleHelper.attachRecyclerView(mRecyclerView);
 
+        getNotebooks();
     }
 
     @Override
@@ -150,10 +149,22 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
         });
     }
 
+    private void getNotebooks() {
+        final String token = mSharedPreferences.getString(C.EXTRA_TOKEN, "");
+        mHttpMethods.getNotebooks(token, new ObserverAdapter<List<Notebook>>(this, false) {
+            @Override
+            public void onNext(List<Notebook> notebooks) {
+                super.onNext(notebooks);
+                L.i("notebooks = " + notebooks);
+            }
+        });
+    }
+
     class BookHolder extends RecyclerView.ViewHolder {
 
         public BookHolder(View itemView) {
             super(itemView);
+
         }
     }
 
@@ -169,7 +180,6 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
         public BookHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_book_layout, parent, false);
             mBookAdapterHelper.onCreateViewHolder(parent, itemView);
-            L.i("onCreateViewHolder");
             return new BookHolder(itemView);
         }
 
@@ -180,7 +190,7 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
 
         @Override
         public int getItemCount() {
-            return 8;
+            return 6;
         }
     }
 }
