@@ -21,4 +21,7 @@
 
     <string name="nav_menu_logout">注销</string>
 
+    <string name="create_time">创建时间: </string>
+    <string name="update_time">更新时间: </string>
+
 </resources>

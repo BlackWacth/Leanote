@@ -29,7 +29,11 @@ import com.bruce.leanote.ui.widgets.BookAdapterHelper;
 import com.bruce.leanote.ui.widgets.BookScaleHelper;
 import com.bruce.leanote.utils.L;
 import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -47,6 +51,50 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
     RecyclerView mRecyclerView;
 
     private HttpMethods mHttpMethods;
+
+    private List<Notebook> mNotebooks = new ArrayList<>();
+    private NotebookAdapter mNotebookAdapter;
+
+    private static final String ARRAY_JSON = "[\n" +
+            "  {\n" +
+            "    \"NotebookId\": \"585f767dab64417326002874\",\n" +
+            "    \"UserId\": \"585f767dab64417326002873\",\n" +
+            "    \"ParentNotebookId\": \"\",\n" +
+            "    \"Seq\": -1,\n" +
+            "    \"Title\": \"life\",\n" +
+            "    \"UrlTitle\": \"life\",\n" +
+            "    \"IsBlog\": false,\n" +
+            "    \"CreatedTime\": \"2016-12-25T15:34:21.239+08:00\",\n" +
+            "    \"UpdatedTime\": \"2016-12-25T15:34:21.239+08:00\",\n" +
+            "    \"Usn\": 7,\n" +
+            "    \"IsDeleted\": true\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"NotebookId\": \"585f767dab64417326002876\",\n" +
+            "    \"UserId\": \"585f767dab64417326002873\",\n" +
+            "    \"ParentNotebookId\": \"\",\n" +
+            "    \"Seq\": 0,\n" +
+            "    \"Title\": \"Android\",\n" +
+            "    \"UrlTitle\": \"work\",\n" +
+            "    \"IsBlog\": false,\n" +
+            "    \"CreatedTime\": \"2016-12-25T15:34:21.242+08:00\",\n" +
+            "    \"UpdatedTime\": \"2016-12-25T17:01:45.337+08:00\",\n" +
+            "    \"Usn\": 11,\n" +
+            "    \"IsDeleted\": false\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"NotebookId\": \"585f8af9ab644175ca002b6a\",\n" +
+            "    \"UserId\": \"585f767dab64417326002873\",\n" +
+            "    \"ParentNotebookId\": \"\",\n" +
+            "    \"Seq\": 1,\n" +
+            "    \"Title\": \"Java\",\n" +
+            "    \"UrlTitle\": \"Java\",\n" +
+            "    \"IsBlog\": false,\n" +
+            "    \"CreatedTime\": \"2016-12-25T17:01:45.675+08:00\",\n" +
+            "    \"UpdatedTime\": \"2016-12-25T17:01:45.675+08:00\",\n" +
+            "    \"Usn\": 12,\n" +
+            "    \"IsDeleted\": false\n" +
+            "  }]";
 
     @Override
     protected int getLayoutId() {
@@ -77,13 +125,20 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         mRecyclerView.setLayoutManager(linearLayoutManager);
-        BookAdapter adapter = new BookAdapter();
-        mRecyclerView.setAdapter(adapter);
+        mNotebookAdapter = new NotebookAdapter();
+        mRecyclerView.setAdapter(mNotebookAdapter);
 
         BookScaleHelper bookScaleHelper = new BookScaleHelper();
         bookScaleHelper.attachRecyclerView(mRecyclerView);
 
         getNotebooks();
+
+        Gson gson = new Gson();
+        List<Notebook> json = gson.fromJson(ARRAY_JSON, new TypeToken<List<Notebook>>() {}.getType());
+        for (Notebook notebook: json) {
+            L.i("notebook = " + notebook.toString());
+        }
+
     }
 
     @Override
@@ -155,42 +210,18 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
             @Override
             public void onNext(List<Notebook> notebooks) {
                 super.onNext(notebooks);
+                if(notebooks == null) {
+                    return;
+                }
                 L.i("notebooks = " + notebooks);
+                mNotebooks.clear();
+                for (Notebook notebook : notebooks) {
+                    if(TextUtils.isEmpty(notebook.getParentNotebookId()) && !notebook.isIsDeleted()) {
+                        mNotebooks.add(notebook);
+                    }
+                }
+                mNotebookAdapter.update(mNotebooks);
             }
         });
-    }
-
-    class BookHolder extends RecyclerView.ViewHolder {
-
-        public BookHolder(View itemView) {
-            super(itemView);
-
-        }
-    }
-
-    class BookAdapter extends RecyclerView.Adapter<BookHolder> {
-
-        private BookAdapterHelper mBookAdapterHelper;
-
-        public BookAdapter() {
-            mBookAdapterHelper = new BookAdapterHelper();
-        }
-
-        @Override
-        public BookHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_book_layout, parent, false);
-            mBookAdapterHelper.onCreateViewHolder(parent, itemView);
-            return new BookHolder(itemView);
-        }
-
-        @Override
-        public void onBindViewHolder(BookHolder holder, int position) {
-            mBookAdapterHelper.onBindViewHolder(holder.itemView, position, getItemCount());
-        }
-
-        @Override
-        public int getItemCount() {
-            return 6;
-        }
     }
 }

@@ -7,6 +7,7 @@ import com.bruce.leanote.entity.UserInfo;
 import com.bruce.leanote.utils.L;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,6 +127,76 @@ public class HttpMethods {
                 .subscribe(observer);
     }
 
+    private <T> void httpRequest(final Request request, Observer<List<T>> observer, final Type type) {
+        Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(@NonNull final ObservableEmitter<String> emitter) throws Exception {
+                final Call call = mOkHttpClient.newCall(request);
+                emitter.setCancellable(new Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        call.cancel();
+                    }
+                });
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        emitter.onError(e);
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if(response.isSuccessful())
+                            emitter.onNext(response.body().string());
+                        emitter.onComplete();
+                    }
+                });
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .flatMap(new Function<String, ObservableSource<List<T>>>() {
+                    @Override
+                    public ObservableSource<List<T>> apply(@NonNull final String s) throws Exception {
+                        L.i("flatMap : " + s);
+                        return Observable.create(new ObservableOnSubscribe<List<T>>() {
+                            @Override
+                            public void subscribe(@NonNull ObservableEmitter<List<T>> emitter) throws Exception {
+                                Gson gson = new Gson();
+                                try {
+                                    boolean ok = new JSONObject(s).getBoolean("Ok");
+                                    L.i("ok = " + ok);
+                                    if(!ok) {
+                                        Result result = gson.fromJson(s, Result.class);
+                                        emitter.onError(new FailedResultException(result.getMsg()));
+                                    } else {
+                                        List<T> t = gson.fromJson(s, type);
+                                        L.i("t = " + t.toString());
+                                        emitter.onNext(t);
+                                        emitter.onComplete();
+                                    }
+                                } catch (JSONException e) {
+                                    if("No value for Ok".equals(e.getMessage())) {
+                                        List<Notebook> t = gson.fromJson(s, new TypeToken<List<Notebook>>(){}.getType());
+                                        L.i("result t = " + t.toString());
+//                                        emitter.onNext(t);
+                                        emitter.onComplete();
+                                    }
+                                    L.i("JSONException = " + e.getMessage());
+                                } catch (JsonSyntaxException e) {
+                                    e.printStackTrace();
+                                    L.i("JsonSyntaxException = " + e.getMessage());
+                                }
+                            }
+                        });
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(observer);
+    }
+
+
+
     public void login(String email, String pwd, Observer<Login> observer) {
         final String loginUrl = BASE_URL + "auth/login?email=" + email + "&pwd=" + pwd;
         Request request = new Request.Builder().url(loginUrl).get().build();
@@ -171,7 +242,8 @@ public class HttpMethods {
      */
     public void getNotebooks(String token, Observer<List<Notebook>> observer) {
         final String url = BASE_URL + "notebook/getNotebooks?token="  + token;
-        get(url, observer);
+        Request request = new Request.Builder().url(url).get().build();
+        httpRequest(request, observer, new TypeToken<List<Notebook>>(){}.getType());
     }
 
     /**
@@ -236,12 +308,12 @@ public class HttpMethods {
 
     private void get(String url, Observer observer) {
         Request request = new Request.Builder().url(url).get().build();
-        httpRequest(request, observer, Result.class);
+//        httpRequest(request, observer, Result.class);
     }
 
     private void post(String url, RequestBody requestBody, Observer observer) {
         Request request = new Request.Builder().url(url).post(requestBody).build();
-        httpRequest(request, observer, Result.class);
+//        httpRequest(request, observer, Result.class);
     }
 
     /**
@@ -264,4 +336,6 @@ public class HttpMethods {
             return null;
         }
     }
+
+
 }
