@@ -35,4 +35,19 @@
 
     </RelativeLayout>
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_home_add_action_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_gravity="bottom|right"
+        android:src="@drawable/ic_add"
+        android:soundEffectsEnabled="true"
+        app:fabSize="normal"
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp"
+        app:rippleColor="@color/md_red_900"
+        app:backgroundTint="@color/md_red_500"/>
+
 </android.support.design.widget.CoordinatorLayout>

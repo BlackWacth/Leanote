@@ -29,7 +29,7 @@ public class BookAdapterHelper {
         L.i("width = " + width + ", height = " + height);
 
         final RecyclerView.LayoutParams itemParams = new RecyclerView.LayoutParams(width, height);
-        itemParams.topMargin = (parent.getHeight() - height) / 2;
+        itemParams.topMargin = (parent.getHeight() - height) / 3;
         itemView.setLayoutParams(itemParams);
     }
 

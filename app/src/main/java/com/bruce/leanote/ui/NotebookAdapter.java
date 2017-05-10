@@ -11,13 +11,17 @@ import com.bruce.leanote.R;
 import com.bruce.leanote.entity.Notebook;
 import com.bruce.leanote.ui.widgets.BookAdapterHelper;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
+ * 首页适配器
  * Created by Bruce on 2017/5/5.
  */
-
 public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.NotebookHolder>  {
 
     private List<Notebook> mNotebooks = new ArrayList<>();
@@ -47,8 +51,8 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
             return;
         }
         holder.title.setText(notebook.getTitle());
-        holder.createTime.setText(notebook.getCreatedTime());
-        holder.updateTime.setText(notebook.getUpdatedTime());
+        holder.createTime.setText(formatDate(notebook.getCreatedTime()));
+        holder.updateTime.setText(formatDate(notebook.getUpdatedTime()));
     }
 
     @Override
@@ -69,6 +73,23 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
         mNotebooks.clear();
         mNotebooks.addAll(notebooks);
         notifyDataSetChanged();
+    }
+
+    /**
+     * 把日期从2016-12-25T15:34:21.239+08:00 格式化为 2016-12-25 15:34
+     * @param strDate 原始日期
+     * @return 格式化后日期
+     */
+    private String formatDate(String strDate) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.CHINA);
+        try {
+            Date parseDate = simpleDateFormat.parse(strDate);
+            simpleDateFormat.applyPattern("yyyy-MM-dd HH:mm");
+            return simpleDateFormat.format(parseDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     class NotebookHolder extends RecyclerView.ViewHolder {

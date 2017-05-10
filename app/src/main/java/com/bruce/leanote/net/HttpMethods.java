@@ -1,13 +1,17 @@
 package com.bruce.leanote.net;
 
+import android.text.TextUtils;
+
 import com.bruce.leanote.entity.Login;
 import com.bruce.leanote.entity.Notebook;
 import com.bruce.leanote.entity.Result;
 import com.bruce.leanote.entity.UserInfo;
+import com.bruce.leanote.global.C;
 import com.bruce.leanote.utils.L;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,7 +20,10 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -33,7 +40,6 @@ import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -41,9 +47,6 @@ import okhttp3.Response;
  * Created by Bruce on 2017/2/10.
  */
 public class HttpMethods {
-
-    private static final String BASE_URL = "https://leanote.com/api/";
-    private static final int DEFAULT_TIMEOUT = 10;
 
     private OkHttpClient mOkHttpClient;
 
@@ -59,7 +62,13 @@ public class HttpMethods {
         return HttpMethodsHelper.HTTP_METHODS;
     }
 
-    private <T> void httpRequest(final Request request, Observer<T> observer, final Class<T> clazz) {
+    /**
+     * 网络请求， 返回结果为具体对象
+     * @param request 请求对象
+     * @param observer Observer
+     * @param <T> 泛型为对象
+     */
+    public <T> void httpRequest(final Request request, final Observer<T> observer) {
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(@NonNull final ObservableEmitter<String> emitter) throws Exception {
@@ -102,14 +111,14 @@ public class HttpMethods {
                                         Result result = gson.fromJson(s, Result.class);
                                         emitter.onError(new FailedResultException(result.getMsg()));
                                     } else {
-                                        T t = gson.fromJson(s, clazz);
+                                        T t = gson.fromJson(s, getParameterType(observer));
                                         L.i("t = " + t.toString());
                                         emitter.onNext(t);
                                         emitter.onComplete();
                                     }
                                 } catch (JSONException e) {
                                     if("No value for Ok".equals(e.getMessage())) {
-                                        T t = gson.fromJson(s, clazz);
+                                        T t = gson.fromJson(s, getParameterType(observer));
                                         L.i("t = " + t.toString());
                                         emitter.onNext(t);
                                         emitter.onComplete();
@@ -127,7 +136,13 @@ public class HttpMethods {
                 .subscribe(observer);
     }
 
-    private <T> void httpRequest(final Request request, Observer<List<T>> observer, final Type type) {
+    /**
+     * 网络请求， 返回结果为对象集合
+     * @param request 请求对象
+     * @param observer Observer
+     * @param <T> 泛型为对象
+     */
+    private <T> void httpRequestList(final Request request, final Observer<List<T>> observer) {
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(@NonNull final ObservableEmitter<String> emitter) throws Exception {
@@ -162,30 +177,19 @@ public class HttpMethods {
                         return Observable.create(new ObservableOnSubscribe<List<T>>() {
                             @Override
                             public void subscribe(@NonNull ObservableEmitter<List<T>> emitter) throws Exception {
+
+                                JsonParser jsonParser = new JsonParser();
+                                JsonElement jsonElement = jsonParser.parse(s);
+
                                 Gson gson = new Gson();
-                                try {
-                                    boolean ok = new JSONObject(s).getBoolean("Ok");
-                                    L.i("ok = " + ok);
-                                    if(!ok) {
-                                        Result result = gson.fromJson(s, Result.class);
-                                        emitter.onError(new FailedResultException(result.getMsg()));
-                                    } else {
-                                        List<T> t = gson.fromJson(s, type);
-                                        L.i("t = " + t.toString());
-                                        emitter.onNext(t);
-                                        emitter.onComplete();
-                                    }
-                                } catch (JSONException e) {
-                                    if("No value for Ok".equals(e.getMessage())) {
-                                        List<Notebook> t = gson.fromJson(s, new TypeToken<List<Notebook>>(){}.getType());
-                                        L.i("result t = " + t.toString());
-//                                        emitter.onNext(t);
-                                        emitter.onComplete();
-                                    }
-                                    L.i("JSONException = " + e.getMessage());
-                                } catch (JsonSyntaxException e) {
-                                    e.printStackTrace();
-                                    L.i("JsonSyntaxException = " + e.getMessage());
+                                if(jsonElement.isJsonArray()) {
+                                    List<T> t = gson.fromJson(s, getParameterType(observer));
+                                    L.i("result t = " + t.toString());
+                                    emitter.onNext(t);
+                                    emitter.onComplete();
+                                } else if(jsonElement.isJsonObject()) {
+                                    Result result = gson.fromJson(s, Result.class);
+                                    emitter.onError(new FailedResultException(result.getMsg()));
                                 }
                             }
                         });
@@ -195,55 +199,73 @@ public class HttpMethods {
                 .subscribe(observer);
     }
 
-
-
+    /**
+     * 登录
+     * @param email 邮箱
+     * @param pwd 密码
+     * @param observer Observer
+     */
     public void login(String email, String pwd, Observer<Login> observer) {
-        final String loginUrl = BASE_URL + "auth/login?email=" + email + "&pwd=" + pwd;
-        Request request = new Request.Builder().url(loginUrl).get().build();
-        httpRequest(request, observer, Login.class);
+        Map<String, String> params = new HashMap<>();
+        params.put("email", email);
+        params.put("pwd", pwd);
+        final String url = Url.splitJointUrl(Url.LOGIN, params);
+        get(url, observer, false);
     }
 
-    public void getUserInfo(String userId, String token, Observer<UserInfo> observer) {
-        final String url = BASE_URL + "user/info?userId=" + userId + "&token=" + token;
-        Request request = new Request.Builder().url(url).get().build();
-        httpRequest(request, observer, UserInfo.class);
+    /**
+     * 注销
+     * @param observer Observer
+     */
+    public void logout(Observer<Result> observer) {
+        get(Url.LOGOUT, observer, true);
     }
 
-    public void logout(String token, Observer<Result> observer) {
-        final String url = BASE_URL + "auth/logout?token="  + token;
-        Request request = new Request.Builder().url(url).get().build();
-        httpRequest(request, observer, Result.class);
-    }
-
+    /**
+     * 注册
+     * @param email 邮箱
+     * @param pwd 密码
+     * @param observer Observer
+     */
     public void register(String email, String pwd, Observer<Result> observer) {
-        final String loginUrl = BASE_URL + "auth/register";
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("email", email);
         builder.add("pwd", pwd);
-        Request request = new Request.Builder().url(loginUrl).post(builder.build()).build();
-        httpRequest(request, observer, Result.class);
+        post(Url.REGISTER, builder, observer, false);
+    }
+
+    /**
+     * 获取用户信息
+     * @param userId 用户ID
+     * @param observer Observer
+     */
+    public void getUserInfo(String userId, Observer<UserInfo> observer) {
+        Map<String, String> params = new HashMap<>();
+        params.put("userId", userId);
+        final String url = Url.splitJointUrl(Url.USER_INFO, params);
+        get(url, observer, true);
     }
 
     /**
      * 得到需要同步的笔记本
      * @param afterUsn 在此usn后的笔记本是需要同步的
      * @param maxEntry 最大要同步的量
-     * @param token
-     * @param observer
+     * @param observer Observer
      */
-    public void getSyncNotebooks(int afterUsn, int maxEntry, String token, Observer<List<Notebook>> observer) {
-        final String url = BASE_URL + "notebook/getSyncNotebooks?afterUsn="  + afterUsn + "&maxEntry=" + maxEntry + "&token=" + token;
-        get(url, observer);
+    public void getSyncNotebooks(int afterUsn, int maxEntry, Observer<List<Notebook>> observer) {
+        Map<String, String> params = new HashMap<>();
+        params.put("afterUsn", afterUsn+"");
+        params.put("maxEntry", maxEntry+"");
+        final String url = Url.splitJointUrl(Url.SYNC_NOTEBOOKS, params);
+        getList(url, observer, true);
     }
 
     /**
      * 得到所有笔记本
-     * @param token
+     * @param observer Observer
      */
-    public void getNotebooks(String token, Observer<List<Notebook>> observer) {
-        final String url = BASE_URL + "notebook/getNotebooks?token="  + token;
-        Request request = new Request.Builder().url(url).get().build();
-        httpRequest(request, observer, new TypeToken<List<Notebook>>(){}.getType());
+    public void getNotebooks(Observer<List<Notebook>> observer) {
+        getList(Url.GET_NOTEBOOKS, observer, true);
     }
 
     /**
@@ -251,17 +273,14 @@ public class HttpMethods {
      * @param title 标题
      * @param parentNotebookId  父notebookId, 可空
      * @param seq 排列
-     * @param token
-     * @param observer
+     * @param observer Observer
      */
-    public void addNotebook(String title, String parentNotebookId, int seq, String token, Observer<Notebook> observer) {
-        final String url = BASE_URL + "notebook/addNotebook";
+    public void addNotebook(String title, String parentNotebookId, int seq, Observer<Notebook> observer) {
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("title", title);
         builder.add("parentNotebookId", parentNotebookId);
         builder.add("seq", seq + "");
-        builder.add("token", token);
-        post(url, builder.build(), observer);
+        post(Url.ADD_NOTEBOOK, builder, observer, true);
     }
 
     /**
@@ -271,20 +290,17 @@ public class HttpMethods {
      * @param title 标题
      * @param parentNotebookId 父notebookId
      * @param seq 排列
-     * @param usn
-     * @param token
-     * @param observer
+     * @param usn usn
+     * @param observer Observer
      */
-    public void updateNotebook(String notebookId, String title, String parentNotebookId, int seq, int usn, String token, Observer<Notebook> observer) {
-        final String url = BASE_URL + "notebook/updateNotebook";
+    public void updateNotebook(String notebookId, String title, String parentNotebookId, int seq, int usn, Observer<Notebook> observer) {
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("notebookId", notebookId);
         builder.add("title", title);
         builder.add("parentNotebookId", parentNotebookId);
         builder.add("seq", seq + "");
         builder.add("usn", usn + "");
-        builder.add("token", token);
-        post(url, builder.build(), observer);
+        post(Url.UPDATE_NOTEBOOK, builder, observer, true);
     }
 
     /**
@@ -292,50 +308,134 @@ public class HttpMethods {
      * 错误: {Ok: false, msg: ""} msg == "conflict" 表示冲突
      * 成功: {Ok: true}
      * @param notebookId 笔记本ID
-     * @param usn
-     * @param token
-     * @param observer
+     * @param usn usn
+     * @param observer Observer
      */
-    public void deleteNotebook(String notebookId, int usn, String token, Observer<Result> observer) {
-        final String url = BASE_URL + "notebook/deleteNotebook ";
+    public void deleteNotebook(String notebookId, int usn, Observer<Result> observer) {
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("notebookId", notebookId);
         builder.add("usn", usn + "");
-        builder.add("token", token);
-        post(url, builder.build(), observer);
-    }
-
-
-    private void get(String url, Observer observer) {
-        Request request = new Request.Builder().url(url).get().build();
-//        httpRequest(request, observer, Result.class);
-    }
-
-    private void post(String url, RequestBody requestBody, Observer observer) {
-        Request request = new Request.Builder().url(url).post(requestBody).build();
-//        httpRequest(request, observer, Result.class);
+        post(Url.DELETE_NOTEBOOK, builder, observer, true);
     }
 
     /**
-     * 获取泛型方法中泛型类型
-     * @return 泛型类型
+     * GET请求， 请求为对象
+     * @param url 地址
+     * @param observer Observer
+     * @param isAddToken 是否加token
+     * @param <T> 泛型为对象
      */
-    private Type getMethodGenericityType() {
-        Method method = null;
-        try {
-            method =HttpMethods.class.getMethod("httpRequest", Request.class, Observer.class);
-            method.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+    private <T> void get(String url, Observer<T> observer, boolean isAddToken) {
+        if(isAddToken) {
+            url = Url.splitJoinToken(url, C.TOKEN);
         }
-        if (method != null) {
-            Type[] types = method.getGenericParameterTypes();
-            ParameterizedType ParameterizedType = (ParameterizedType) types[1];
-            return ParameterizedType.getActualTypeArguments()[0];
-        } else {
-            return null;
+        L.i("url = " + url);
+        if(!TextUtils.isEmpty(url)) {
+            Request request = new Request.Builder().url(url).get().build();
+            httpRequest(request, observer);
         }
     }
 
+    /**
+     * GET请求， 请求为集合
+     * @param url 地址
+     * @param observer Observer
+     * @param isAddToken 是否加token
+     * @param <T> 泛型为对象
+     */
+    private <T> void getList(String url, Observer<List<T>> observer, boolean isAddToken) {
+        if(isAddToken) {
+            url = Url.splitJoinToken(url, C.TOKEN);
+        }
+        L.i("url = " + url);
+        if(!TextUtils.isEmpty(url)) {
+            Request request = new Request.Builder().url(url).get().build();
+            httpRequestList(request, observer);
+        }
+    }
 
+    /**
+     * POST请求， 请求为对象
+     * @param url 地址
+     * @param builder 参数
+     * @param observer Observer
+     * @param isAddToken 是否加token
+     * @param <T> 泛型为对象
+     */
+    private <T> void post(String url, FormBody.Builder builder, Observer<T> observer, boolean isAddToken) {
+        if(TextUtils.isEmpty(url)) {
+            return;
+        }
+        if(isAddToken) {
+            builder.add("token", C.TOKEN);
+        }
+        Request request = new Request.Builder().url(url).post(builder.build()).build();
+        httpRequest(request, observer);
+    }
+
+    /**
+     * POST请求， 请求为集合
+     * @param url 地址
+     * @param builder 参数
+     * @param observer Observer
+     * @param isAddToken 是否加token
+     * @param <T> 泛型为对象
+     */
+    private <T> void postList(String url, FormBody.Builder builder, Observer<List<T>> observer, boolean isAddToken) {
+        if(TextUtils.isEmpty(url)) {
+            return;
+        }
+        if(isAddToken) {
+            builder.add("token", C.TOKEN);
+        }
+        Request request = new Request.Builder().url(url).post(builder.build()).build();
+        httpRequestList(request, observer);
+    }
+
+    /**
+     * 参数泛型类型
+     * @param object 参数
+     * @return 参数类型
+     */
+    private Type getParameterType(Object object) {
+        ParameterizedType parameterizedType = (ParameterizedType) object.getClass().getGenericSuperclass();
+        L.i("sub - type = " + Arrays.toString(parameterizedType.getActualTypeArguments()));
+        return parameterizedType.getActualTypeArguments()[0];
+    }
+
+    private Type getMethodType(String methodName) {
+        try {
+            Class<?> clazz = Class.forName(getClassName(getCallerStackTraceElement()));
+
+            Method[] methods = clazz.getMethods();
+            for (Method method : methods) {
+                if(method.getName().equals(methodName)) {
+
+                    Type[] genericParameterTypes = method.getGenericParameterTypes();
+                    L.i("genericParameterTypes : " + Arrays.toString(genericParameterTypes));
+                    ParameterizedType parameterizedType = (ParameterizedType) genericParameterTypes[1];
+                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                    L.i("genericParameterTypes : " + Arrays.toString(actualTypeArguments));
+                    return actualTypeArguments[0];
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String getMethodName() {
+        return getCallerStackTraceElement().getMethodName();
+    }
+
+    private String getClassName(StackTraceElement caller) {
+        String callerClazzName = caller.getClassName();
+        callerClazzName = callerClazzName.substring(callerClazzName.lastIndexOf(".") + 1);
+        return callerClazzName;
+    }
+
+    private StackTraceElement getCallerStackTraceElement() {
+        return Thread.currentThread().getStackTrace()[4];
+    }
 }

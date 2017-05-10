@@ -127,6 +127,7 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
                 super.onNext(login);
                 L.i("login = " + login.toString());
                 mSharedPreferencesEditor.putString(C.EXTRA_TOKEN, login.getToken());
+                C.TOKEN = login.getToken();
                 mSharedPreferencesEditor.putString(C.EXTRA_USER_ID, login.getUserId());
                 mSharedPreferencesEditor.putString(C.EXTRA_USER_NAME, login.getUsername());
                 Set<String> emailSet = mSharedPreferences.getStringSet(C.EXTRA_EMAIL_SET, new HashSet<String>());
