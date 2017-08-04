@@ -21,11 +21,11 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden"/>
-
         <activity
             android:name=".ui.signIn.SignInActivity"
             android:windowSoftInputMode="stateHidden|stateAlwaysHidden"/>
-
+        <activity android:name=".ui.notebook.NotebookActivity">
+        </activity>
     </application>
 
 </manifest>

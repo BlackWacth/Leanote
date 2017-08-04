@@ -5,4 +5,8 @@
     <dimen name="nav_home_header_height">180dp</dimen>
     <dimen name="dialog_loading_width">100dp</dimen>
     <dimen name="dialog_loading_height">100dp</dimen>
+
+    <dimen name="toolbar_elevation">4dp</dimen>
+    <dimen name="floating_action_button_width">48dp</dimen>
+    <dimen name="floating_action_button_height">48dp</dimen>
 </resources>

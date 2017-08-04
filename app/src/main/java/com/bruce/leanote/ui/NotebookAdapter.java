@@ -26,6 +26,7 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
 
     private List<Notebook> mNotebooks = new ArrayList<>();
     private BookAdapterHelper mBookAdapterHelper;
+    private OnClickListener mOnClickListener;
 
     public NotebookAdapter() {
         mBookAdapterHelper = new BookAdapterHelper();
@@ -44,7 +45,7 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
     }
 
     @Override
-    public void onBindViewHolder(NotebookHolder holder, int position) {
+    public void onBindViewHolder(final NotebookHolder holder, final int position) {
         mBookAdapterHelper.onBindViewHolder(holder.itemView, position, getItemCount());
         Notebook notebook = getItem(position);
         if(notebook == null) {
@@ -53,6 +54,14 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
         holder.title.setText(notebook.getTitle());
         holder.createTime.setText(formatDate(notebook.getCreatedTime()));
         holder.updateTime.setText(formatDate(notebook.getUpdatedTime()));
+        holder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mOnClickListener != null) {
+                    mOnClickListener.onClick(holder.cardView, position);
+                }
+            }
+        });
     }
 
     @Override
@@ -92,6 +101,14 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
         return "";
     }
 
+    public OnClickListener getOnClickListener() {
+        return mOnClickListener;
+    }
+
+    public void setOnClickListener(OnClickListener onClickListener) {
+        mOnClickListener = onClickListener;
+    }
+
     class NotebookHolder extends RecyclerView.ViewHolder {
 
         CardView cardView;
@@ -106,5 +123,9 @@ public class NotebookAdapter extends RecyclerView.Adapter<NotebookAdapter.Notebo
             createTime = (TextView) itemView.findViewById(R.id.tv_item_book_create_time);
             updateTime = (TextView) itemView.findViewById(R.id.tv_item_book_update_time);
         }
+    }
+
+    public interface OnClickListener {
+        void onClick(View view, int position);
     }
 }

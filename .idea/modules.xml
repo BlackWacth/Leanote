@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Leanote.iml" filepath="$PROJECT_DIR$/Leanote.iml" />
+      <module fileurl="file://$PROJECT_DIR$/NotebookList/NotebookList.iml" filepath="$PROJECT_DIR$/NotebookList/NotebookList.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

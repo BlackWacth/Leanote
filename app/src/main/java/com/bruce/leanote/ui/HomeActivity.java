@@ -1,5 +1,11 @@
 package com.bruce.leanote.ui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -12,7 +18,9 @@ import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +33,7 @@ import com.bruce.leanote.net.HttpMethods;
 import com.bruce.leanote.net.ObserverAdapter;
 import com.bruce.leanote.ui.base.BaseActivity;
 import com.bruce.leanote.ui.login.LoginActivity;
+import com.bruce.leanote.ui.notebook.NotebookActivity;
 import com.bruce.leanote.ui.widgets.BookScaleHelper;
 import com.bruce.leanote.utils.L;
 import com.bumptech.glide.Glide;
@@ -34,7 +43,7 @@ import java.util.List;
 
 import butterknife.BindView;
 
-public class HomeActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class HomeActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener, NotebookAdapter.OnClickListener {
 
     @BindView(R.id.tb_home_toolbar)
     Toolbar mToolbar;
@@ -48,6 +57,9 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
 
     @BindView(R.id.fab_home_add_action_button)
     FloatingActionButton mActionButton;
+
+    @BindView(R.id.cl_content_container)
+    RelativeLayout mFrameLayout;
 
     private HttpMethods mHttpMethods;
 
@@ -90,6 +102,8 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
         BookScaleHelper bookScaleHelper = new BookScaleHelper();
         bookScaleHelper.attachRecyclerView(mRecyclerView);
 
+        mNotebookAdapter.setOnClickListener(this);
+
         getNotebooks();
 
         mActionButton.setOnClickListener(new View.OnClickListener() {
@@ -99,6 +113,7 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
             }
         });
     }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
@@ -124,8 +139,8 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
 
     @Override
     public void onBackPressed() {
-        
-        if(mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
@@ -137,7 +152,7 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
      */
     private void loadUserInfo() {
         final String userId = mSharedPreferences.getString(C.EXTRA_USER_ID, "");
-        mHttpMethods.getUserInfo(userId, new ObserverAdapter<UserInfo>(this ,false) {
+        mHttpMethods.getUserInfo(userId, new ObserverAdapter<UserInfo>(this, false) {
             @Override
             public void onNext(UserInfo userInfo) {
                 super.onNext(userInfo);
@@ -149,10 +164,11 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
                 TextView email = (TextView) navHeaderView.findViewById(R.id.tv_nav_home_header_email);
                 email.setText(userInfo.getEmail());
             }
+
             @Override
             public void requestFailed(String msg) {
                 super.requestFailed(msg);
-                if(msg.equals("NOTLOGIN")) {
+                if (msg.equals("NOTLOGIN")) {
                     startActivity(LoginActivity.class);
                 }
             }
@@ -164,13 +180,13 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
             @Override
             public void onNext(List<Notebook> notebooks) {
                 super.onNext(notebooks);
-                if(notebooks == null) {
+                if (notebooks == null) {
                     return;
                 }
                 L.i("notebooks = " + notebooks);
                 mNotebooks.clear();
                 for (Notebook notebook : notebooks) {
-                    if(TextUtils.isEmpty(notebook.getParentNotebookId()) && !notebook.isIsDeleted()) {
+                    if (TextUtils.isEmpty(notebook.getParentNotebookId()) && !notebook.isIsDeleted()) {
                         mNotebooks.add(notebook);
                     }
                 }
@@ -178,4 +194,89 @@ public class HomeActivity extends BaseActivity implements NavigationView.OnNavig
             }
         });
     }
+
+    @Override
+    public void onClick(View view, int position) {
+//        show(view);
+        startActivity(view, NotebookActivity.class);
+    }
+
+    private AnimatorSet mAnimatorSet;
+    private Rect mStartRect = new Rect();
+    private Rect mEndRect = new Rect();
+    private Point mGlobalOffset = new Point();
+    private View mBookFaceView, mBookContentView;
+
+    private void show(View view) {
+        if (mAnimatorSet != null) {
+            mAnimatorSet.cancel();
+        }
+
+        mStartRect.setEmpty();
+        mEndRect.setEmpty();
+        mGlobalOffset.set(0, 0);
+
+        view.getGlobalVisibleRect(mStartRect);
+        findViewById(R.id.cl_content_container).getGlobalVisibleRect(mEndRect, mGlobalOffset);
+        L.i("startRect = " + mStartRect.toString());
+        L.i("mEndRect = " + mEndRect.toString());
+        L.i("mGlobalOffset = " + mGlobalOffset.toString());
+
+        mStartRect.offset(-mGlobalOffset.x, -mGlobalOffset.y);
+        mEndRect.offset(-mGlobalOffset.x, -mGlobalOffset.y);
+
+        float scaleX = mEndRect.width() * 1.0f / mStartRect.width();
+        float scaleY = mEndRect.height() * 1.0f / mStartRect.height();
+        L.i("scaleX = " + scaleX + ", scaleY = " + scaleY);
+
+        if (mBookContentView == null) {
+            mBookContentView = createView(view);
+            mFrameLayout.addView(mBookContentView);
+        }
+
+        if (mBookFaceView == null) {
+            mBookFaceView = createView(view);
+            mFrameLayout.addView(mBookFaceView);
+        }
+
+        mBookContentView.setPivotX(0);
+        mBookContentView.setPivotY(0);
+        mBookFaceView.setPivotX(0);
+        mBookFaceView.setPivotY(0);
+
+        AnimatorSet set = new AnimatorSet();
+        set.play(ObjectAnimator.ofFloat(mBookFaceView, View.ROTATION_Y, 0, -90))
+        .with(ObjectAnimator.ofFloat(mBookContentView, View.SCALE_X, scaleX))
+        .with(ObjectAnimator.ofFloat(mBookContentView, View.SCALE_Y, scaleY));
+
+        set.setInterpolator(new AccelerateDecelerateInterpolator());
+        set.setDuration(1000);
+        set.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mAnimatorSet = null;
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mAnimatorSet = null;
+            }
+        });
+        mAnimatorSet = set;
+        set.start();
+    }
+
+    private View createView(View view) {
+
+        View copyView = new View(this);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(view.getWidth(), view.getHeight());
+        copyView.setLayoutParams(params);
+        copyView.setBackgroundColor(getResources().getColor(R.color.md_amber_400));
+
+        copyView.setX(mStartRect.left);
+        copyView.setY(mStartRect.top);
+
+        return copyView;
+    }
+
 }

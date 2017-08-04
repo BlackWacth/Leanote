@@ -4,7 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.Toast;
 
 import butterknife.ButterKnife;
@@ -34,6 +38,13 @@ public abstract class BaseActivity extends AppCompatActivity{
 
     public void startActivity(Class<?> cls) {
         startActivity(new Intent(this, cls));
+        overridePendingTransition(0, 0);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        overridePendingTransition(0, 0);
     }
 
     public void showToast(String text) {
@@ -42,7 +53,14 @@ public abstract class BaseActivity extends AppCompatActivity{
 
     public void putString(String key, String value) {
         mSharedPreferencesEditor.putString(key, value);
-        mSharedPreferencesEditor.commit();
+        mSharedPreferencesEditor.apply();
+    }
+
+    public void startActivity(View view, Class cls) {
+        Pair pair = new Pair<>(view, ViewCompat.getTransitionName(view));
+        ActivityOptionsCompat activityOptionsCompat = ActivityOptionsCompat.makeSceneTransitionAnimation(this, pair);
+        Intent intent = new Intent(this, cls);
+        startActivity(intent, activityOptionsCompat.toBundle());
     }
 
 }

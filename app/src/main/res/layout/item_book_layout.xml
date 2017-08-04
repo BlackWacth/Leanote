@@ -9,6 +9,7 @@
     app:cardElevation="6dp"
     app:cardMaxElevation="12dp"
     android:clickable="true"
+    android:transitionName="@string/notebook_transition_name"
     android:foreground="?attr/selectableItemBackground">
 
     <RelativeLayout

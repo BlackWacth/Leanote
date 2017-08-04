@@ -24,4 +24,6 @@
     <string name="create_time">创建时间: </string>
     <string name="update_time">更新时间: </string>
 
+    <string name="notebook_transition_name">notebook_transition_name</string>
+
 </resources>

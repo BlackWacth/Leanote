@@ -49,7 +49,7 @@ public class BookScaleHelper extends RecyclerView.OnScrollListener {
                 mRecyclerViewWidth = mRecyclerView.getWidth();
                 mItemViewWidth = mRecyclerViewWidth - ScreenUtils.dip2px(mRecyclerView.getContext(), (mShowSideItemWidth + mItemMargin) * 2);
                 mOnePagerWidth = mItemViewWidth;
-                L.i("mOnePagerWidth = " + mOnePagerWidth);
+//                L.i("mOnePagerWidth = " + mOnePagerWidth);
                 onScrollChangeCallback();
             }
         });
@@ -80,7 +80,7 @@ public class BookScaleHelper extends RecyclerView.OnScrollListener {
         // dy < 0 表示从上向下滑
         // dy > 0 表示从下向上滑
         mCurrentItemOffset += dx;
-        L.i("dx = " + dx + ", mCurrentItemOffset = " + mCurrentItemOffset);
+//        L.i("dx = " + dx + ", mCurrentItemOffset = " + mCurrentItemOffset);
         computeCurrentItemPos();
         onScrollChangeCallback();
     }
@@ -91,7 +91,7 @@ public class BookScaleHelper extends RecyclerView.OnScrollListener {
         }
         if(Math.abs(mCurrentItemOffset - mCurrentItemPos * mOnePagerWidth) >= mOnePagerWidth) {
             mCurrentItemPos = mCurrentItemOffset / mOnePagerWidth;
-            L.i("mCurrentItemPos = " + mCurrentItemPos);
+//            L.i("mCurrentItemPos = " + mCurrentItemPos);
         }
     }
 
@@ -101,7 +101,7 @@ public class BookScaleHelper extends RecyclerView.OnScrollListener {
     private void onScrollChangeCallback() {
         int offset = mCurrentItemOffset - mCurrentItemPos * (mOnePagerWidth + ScreenUtils.dip2px(mRecyclerView.getContext(), mItemMargin * 2));
         float percent = (float) Math.max(Math.abs(offset) * 1.0 / mOnePagerWidth, 0.0001);
-        L.i("percent = " + percent + ", offset = " + offset + ", mOnePagerWidth = " + mOnePagerWidth);
+//        L.i("percent = " + percent + ", offset = " + offset + ", mOnePagerWidth = " + mOnePagerWidth);
 
         View leftView = null;
         View rightView = null;
@@ -116,7 +116,7 @@ public class BookScaleHelper extends RecyclerView.OnScrollListener {
 
         float sideScale = (1 - mScaleFactor) * percent + mScaleFactor;
         float currentScale = (mScaleFactor - 1) * percent + 1;
-        L.i("sideScale = " + sideScale + ", currentScale = " + currentScale);
+//        L.i("sideScale = " + sideScale + ", currentScale = " + currentScale);
 
         if(leftView != null) {
             leftView.setScaleY(sideScale);

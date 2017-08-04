@@ -23,10 +23,10 @@ public class BookAdapterHelper {
     public static final float WIDTH_HEIGHT_RATE = 1.5f;
 
     public void onCreateViewHolder(ViewGroup parent, View itemView) {
-        L.i("parentWidth = " + parent.getWidth() + ", parent = " + parent.toString());
+//        L.i("parentWidth = " + parent.getWidth() + ", parent = " + parent.toString());
         int width = parent.getWidth() - ScreenUtils.dip2px(parent.getContext(), 2 * (ITEM_MARGIN + SHOW_SIDE_ITEM_WIDTH));
         int height = (int) (width * WIDTH_HEIGHT_RATE);
-        L.i("width = " + width + ", height = " + height);
+//        L.i("width = " + width + ", height = " + height);
 
         final RecyclerView.LayoutParams itemParams = new RecyclerView.LayoutParams(width, height);
         itemParams.topMargin = (parent.getHeight() - height) / 3;
